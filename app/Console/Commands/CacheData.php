@@ -41,21 +41,4 @@ class CacheData extends Command
         $this->info('Process completed.');
     }
 
-    protected function fetchApiData()
-    {
-        $url = 'https://api.example.com/data';
-
-        try {
-            $response = \Http::get($url);
-            if ($response->successful()) {
-                return $response->json();
-            } else {
-                $this->error('Failed to fetch API data.');
-                return null;
-            }
-        } catch (\Exception $e) {
-            $this->error('Error: ' . $e->getMessage());
-            return null;
-        }
-    }
 }

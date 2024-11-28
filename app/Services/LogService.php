@@ -22,6 +22,7 @@ class LogService
         $response = $this->client->get($apiUrl);
         $data = json_decode($response->getBody(), true);
         $this->logRepository->createLog($apiUrl, $data);
+        Cache::put('api_data', $data, now()->addHour());
         return 'success';
 
     }

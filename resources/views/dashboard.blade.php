@@ -6,6 +6,13 @@
   <title>Task Scheduler & API Caching</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <meta name="csrf-token" content="{{ csrf_token() }}">
+  <style>
+    /* Custom styles for logs container */
+    #logs {
+      max-height: 800px;  /* Adjust the height as needed */
+      overflow-y: auto;   /* Enable vertical scrolling */
+    }
+  </style>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
   <div class="container mx-auto px-4 py-6">
@@ -47,10 +54,12 @@
 
   <script>
     // Fetch and display cached data
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
     async function fetchCachedData() {
       const cachedDataContainer = document.getElementById('cached-data');
       try {
-        const response = await fetch('/fetch');
+        const response = await fetch('/api/api-data');
         const data = await response.json();
         cachedDataContainer.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
       } catch (error) {
@@ -62,14 +71,14 @@
     async function fetchLogs() {
       const logsContainer = document.getElementById('logs');
       try {
-        const response = await fetch('/api/logs'); // Ensure this route returns logs
+        const response = await fetch('/fetch');
         const logs = await response.json();
         logsContainer.innerHTML = logs
           .map(
             (log) =>
               `<div class="mb-2">
                 <p><strong>Endpoint:</strong> ${log.endpoint}</p>
-                <p><strong>Response:</strong> <pre>${log.response}</pre></p>
+                <p><strong>Response:</strong> <span class="whitespace-pre-wrap break-words">${log.response}</span></p>
                 <p><strong>Requested At:</strong> ${log.requested_at}</p>
               </div>`
           )
@@ -79,38 +88,40 @@
       }
     }
 
-    // Trigger refresh cache action
     document.getElementById('refresh-cache').addEventListener('click', async () => {
     try {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         await fetch('/refresh-cache', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,  // Add CSRF token here
+            'X-CSRF-TOKEN': csrfToken,
         },
         });
 
         alert('Cache refreshed successfully!');
-        fetchCachedData(); // Reload cached data
+        fetchCachedData();
     } catch (error) {
         alert('Failed to refresh cache.');
     }
     });
 
-    // Trigger clear logs action
     document.getElementById('clear-logs').addEventListener('click', async () => {
       try {
-        await fetch('/api/clear-logs', { method: 'POST' });
+        await fetch('/clear-logs', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+        },
+        });
         alert('Old logs cleared successfully!');
-        fetchLogs(); // Reload logs
+        fetchLogs();
       } catch (error) {
         alert('Failed to clear logs.');
       }
     });
 
-    // Initialize page
     fetchCachedData();
     fetchLogs();
   </script>

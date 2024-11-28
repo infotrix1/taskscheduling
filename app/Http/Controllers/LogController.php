@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Services\LogService;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
+use App\Jobs\CacheApiDataJob;
 
 
 class LogController extends Controller
@@ -28,8 +29,8 @@ class LogController extends Controller
     public function fetch (Request $request)
     {
         try {
-            $this->logService->getRecentLogs($request);
-            return 'Cache refreshed successfully';
+            $logs = $this->logService->getRecentLogs();
+            return $logs;
         } catch (\Exception $e) {
             return redirect()->route('tasks')->with('error', $e->getMessage());
         }
@@ -39,8 +40,8 @@ class LogController extends Controller
     public function refreshCache(Request $request)
     {
         try {
-            $city = $request->input('city', 'London');
-            $apiUrl = "https://api.openweathermap.org/data/2.5/weather?q={$city}&appid={$this->apiKey}&units=metric";
+            $apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=Abuja&appid={$this->apiKey}&units=metric";
+            CacheApiDataJob::dispatch($apiUrl);
             $this->logService->fetchAndCacheApiData($apiUrl);
             return redirect()->route('tasks')->with('success', 'Cache refreshed successfully!');
         } catch (\Exception $e) {
@@ -50,7 +51,11 @@ class LogController extends Controller
 
     public function clearLogs()
     {
-        $this->logService->clearOldLogs();
-        return redirect()->route('tasks')->with('success', 'Old logs cleared successfully!');
+        try {
+            $this->logService->clearOldLogs();
+            return redirect()->route('tasks')->with('success', 'Old logs cleared successfully!');
+        } catch (\Exception $e) {
+            return redirect()->route('tasks')->with('error', $e->getMessage());
+        }
     }
 }
