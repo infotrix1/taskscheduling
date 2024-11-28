@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('data:clean-cache')->everyMinute();
+        $schedule->command('logs:clean')->daily();
     }
 
     /**

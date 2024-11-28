@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
+
+Route::get('/', [LogController::class, 'index'])->name('tasks'); // Default page
+Route::get('/fetch', [LogController::class, 'fetch'])->name('fetch');
+Route::post('/refresh-cache', [LogController::class, 'refreshCache']);
+Route::post('/clear-logs', [LogController::class, 'clearLogs'])->name('clear-logs');
